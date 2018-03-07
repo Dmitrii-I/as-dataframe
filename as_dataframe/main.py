@@ -20,8 +20,9 @@ def as_dataframe(obj: Dict or List[Dict]) -> TypeDataFrame:
 
     combined_df = DataFrame()
     for d in obj:
-        num_rows = max([1] + [len(d[k]) for k in d if isinstance(d[k], list)])
-        df = DataFrame(_flattened(d), index=range(num_rows))
+        flat = _flattened(d)
+        num_rows = max([1] + [len(flat[k]) for k in flat if isinstance(flat[k], list)])
+        df = DataFrame(flat, index=range(num_rows))
         combined_df = combined_df.append(df, ignore_index=False, verify_integrity=False)
 
     combined_df = combined_df.reset_index(drop=True)
