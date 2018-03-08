@@ -1,0 +1,9 @@
+*.swp
+.idea
+__pychache__/
+as_dataframe.egg-info/
+as_dataframe/__init__.pyc
+as_dataframe/__pycache__/
+build/
+dist/
+unit-tests/__pycache__/
