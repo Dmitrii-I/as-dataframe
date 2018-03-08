@@ -1,7 +1,13 @@
 as-dataframe
 ============
 
-Convert dictionaries to dataframes.
+.. image:: https://api.travis-ci.org/Dmitrii-I/as-dataframe.svg?branch=master
+    :target: https://travis-ci.org/Dmitrii-I/as-dataframe
+
+.. image:: https://badge.fury.io/py/as-dataframe.svg
+    :target: https://badge.fury.io/py/as-dataframe
+
+Convert dictionaries to dataframes effortlessly with ``as-dataframe``
 
 
 Installation
