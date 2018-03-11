@@ -47,7 +47,6 @@ def _flattened(nested_dict: dict) -> dict:
         elif isinstance(v, list):
             if all([isinstance(el, dict) for el in v]):
                 new = _single_dict(v)
-                new = _flattened(new)
                 flat.update({str(k) + '.' + kk: new[kk] for kk in new})
             else:
                 flat.update({k: v})
