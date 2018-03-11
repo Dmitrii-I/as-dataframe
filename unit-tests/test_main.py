@@ -1,6 +1,6 @@
 """ Unit tests for the `main` module. """
 
-from as_dataframe import as_dataframe
+from as_dataframe.main import as_dataframe, _flattened
 from pandas import DataFrame
 from unittest import TestCase
 from copy import deepcopy
@@ -70,3 +70,32 @@ class TestAsDataframeFunction(TestCase):
     def test_with_flat_dict_with_simple_values(self):
         expected_df = DataFrame({'a': [1], 'b': [2], 'c': ['foo']})
         self.assertTrue(expected_df.equals(as_dataframe(self.flat_dict_with_simple_values)))
+
+
+class TestFlattenedFunction(TestCase):
+    def test_with_3_levels_of_list_of_dicts(self):
+
+        nested = {
+            'a': [
+                {
+                    'b': [
+                        {
+                            'c': [
+                                {'x': 1, 'y': 2, 'z': 3},
+                                {'x': 4, 'y': 5, 'z': 6},
+                                {'x': 7, 'y': 8, 'z': 9}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        expected_flattened = {
+            'a.b.c.x': [1, 4, 7],
+            'a.b.c.y': [2, 5, 8],
+            'a.b.c.z': [3, 6, 9]
+        }
+
+        self.assertEqual(_flattened(nested), expected_flattened)
+
