@@ -41,6 +41,10 @@ def _flattened(nested_dict: dict) -> dict:
     flat = dict()
 
     for k, v in nested_dict.items():
+
+        if isinstance(v, list) and len(v) == 1:
+            v = v[0]
+
         if isinstance(v, dict):
             new = _flattened(v)
             flat.update({str(k) + '.' + kk: new[kk] for kk in new})
