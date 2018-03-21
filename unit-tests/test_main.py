@@ -1,101 +1,63 @@
 """ Unit tests for the `main` module. """
 
-from as_dataframe.main import as_dataframe, _flattened
+from as_dataframe.main import as_dataframe, _DataFrameableDict
 from pandas import DataFrame
 from unittest import TestCase
-from copy import deepcopy
+from unittest.mock import patch
 
 
 class TestAsDataframeFunction(TestCase):
 
-    def setUp(self):
-        self.nested_dict_with_list_value = {
-            'Company': 'Kramerica Inc.',
-            'Department': {'ID': 4, 'Name': 'Sales'},
-            'Employees': [
-                {'ID': 1, 'Names': {'First': 'Alice'}},
-                {'ID': 2, 'Names': {'First': 'Bob', 'Last': 'Johnson'}},
-                {'ID': 3, 'Names': {'Last': 'McLOVIN'}},
-                {'ID': 4},
-                {'ID': 5, 'Names': None}
-            ],
-            'Financial': {'Profit': {'Before Tax': 100, 'After Tax': 80}}
+    @patch('as_dataframe.main._DataFrameableDict', new=lambda x: x[0])
+    def test_as_dataframe(self):
+        dataframeable_dict = [{'a': [1], ('b', 'a'): [4]}, {'a': [2, 3], ('b', 'b'): [5, 6]}]
+        expected = DataFrame({'a': [1, 2, 3], 'b.a': [4, None, None], 'b.b': [None, 5, 6]})
+        actual = as_dataframe(dataframeable_dict)
+        self.assertTrue(expected.equals(actual))
+
+
+class TestDataFrameableDict(TestCase):
+
+    @patch('as_dataframe.main._DataFrameableDict.flattened', new=lambda x: x)
+    @patch('as_dataframe.main._DataFrameableDict.impute_locf', new=lambda x: None)
+    @patch('as_dataframe.main._DataFrameableDict.drop_redundant_keys', new=lambda x: None)
+    def test_init(self):
+        self.assertEqual(_DataFrameableDict([{'a': 1}]), _DataFrameableDict([{'a': 1}]))
+        self.assertRaises(TypeError, _DataFrameableDict, 'foo')
+        self.assertEqual({}, _DataFrameableDict({}))
+
+        d = {'a': 1, 'b': [1, 2, 3]}
+        expected = {'a': [1], 'b': [1, 2, 3]}
+        actual = _DataFrameableDict([d])
+        self.assertEqual(expected, actual)
+
+    def test_drop_redundant_keys(self):
+        actual = {('a',): [1, 2, 3], ('b',): [None] * 3, ('b', 'a'): [4, 5, 6]}
+        expected = {('a',): [1, 2, 3], ('b', 'a'): [4, 5, 6]}
+
+        # noinspection PyCallByClass,PyTypeChecker
+        _DataFrameableDict.drop_redundant_keys(actual)
+        self.assertEqual(expected, actual)
+
+    def test_impute_locf(self):
+        actual = {('a',): [1, 2, 3], ('b',): [1, 2, 3, 4 ,5]}
+        expected = {('a',): [1, 2, 3, 3, 3], ('b',): [1, 2, 3, 4, 5]}
+
+        # noinspection PyCallByClass,PyTypeChecker
+        _DataFrameableDict.impute_locf(actual)
+        self.assertEqual(expected, actual)
+
+    def test_flattened(self):
+        d = {
+            'a': 1,
+            ('b',): 2,
+            'c': {'d': 1},
+            'e': [{'f': 1}, {'f': 2}]
         }
 
-        self.flat_dict_with_simple_values = {'a': 1, 'b': 2, 'c': 'foo'}
+        actual = _DataFrameableDict.flattened(d)
+        expected = {('a',): 1, (('b',),): 2, ('c', 'd'): 1, ('e', 'f'): [1, 2]}
+        self.assertEqual(expected, actual)
 
-    def test_with_nested_dict_with_list_value(self):
-
-        nested_dict = deepcopy(self.nested_dict_with_list_value)
-
-        expected_df = DataFrame({
-            'Company': 'Kramerica Inc.',
-            'Department.ID': 4,
-            'Department.Name': 'Sales',
-            'Employees.ID': [1, 2, 3, 4, 5],
-            'Employees.Names.First': ['Alice', 'Bob', None, None, None],
-            'Employees.Names.Last': [None, 'Johnson', 'McLOVIN', None, None],
-            'Financial.Profit.Before Tax': 100,
-            'Financial.Profit.After Tax': 80,
-        })
-
-        self.assertTrue(expected_df.equals(as_dataframe(nested_dict)))
-
-    def test_with_list_of_nested_dicts_with_list_value(self):
-
-        nested_dict = deepcopy(self.nested_dict_with_list_value)
-
-        expected_df = DataFrame({
-            'Company': 'Kramerica Inc.',
-            'Department.ID': 4,
-            'Department.Name': 'Sales',
-            'Employees.ID': [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
-            'Employees.Names.First': ['Alice', 'Bob', None, None, None, 'Alice', 'Bob', None, None, None],
-            'Employees.Names.Last': [None, 'Johnson', 'McLOVIN', None, None, None, 'Johnson', 'McLOVIN', None, None],
-            'Financial.Profit.Before Tax': 100,
-            'Financial.Profit.After Tax': 80,
-        })
-
-        self.assertTrue(expected_df.equals(as_dataframe([nested_dict]*2)))
-
-    def test_argument_is_not_modifed(self):
-
-        dict_1 = deepcopy(self.nested_dict_with_list_value)
-        dict_2 = deepcopy(self.nested_dict_with_list_value)
-
-        _ = as_dataframe(dict_1)
-
-        self.assertEqual(dict_1, dict_2)
-
-    def test_with_flat_dict_with_simple_values(self):
-        expected_df = DataFrame({'a': [1], 'b': [2], 'c': ['foo']})
-        self.assertTrue(expected_df.equals(as_dataframe(self.flat_dict_with_simple_values)))
-
-
-class TestFlattenedFunction(TestCase):
-    def test_with_3_levels_of_list_of_dicts(self):
-
-        nested = {
-            'a': [
-                {
-                    'b': [
-                        {
-                            'c': [
-                                {'x': 1, 'y': 2, 'z': 3},
-                                {'x': 4, 'y': 5, 'z': 6},
-                                {'x': 7, 'y': 8, 'z': 9}
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-
-        expected_flattened = {
-            'a.b.c.x': [1, 4, 7],
-            'a.b.c.y': [2, 5, 8],
-            'a.b.c.z': [3, 6, 9]
-        }
-
-        self.assertEqual(_flattened(nested), expected_flattened)
-
+        d['g'] = [{'h': 1}, {'h': 2}, {'h': 3}]
+        self.assertRaises(ValueError, _DataFrameableDict.flattened, d)
