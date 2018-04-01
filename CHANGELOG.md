@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.2.1
+* Downgrade required Python version from 3.5.3 to 3.5.2.
+
 ## 0.2.0
 * Backwards compatible rewrite of internal code.
 
