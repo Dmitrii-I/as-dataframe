@@ -55,6 +55,6 @@ setup(
     license='MIT',
     packages=find_packages(exclude=['contrib', 'docs', '*test*']),
     install_requires=['pandas'],
-    python_requires='>=3.5.3',
+    python_requires='>=3.5.2',
     cmdclass={'upload': UploadCommand}
 )
