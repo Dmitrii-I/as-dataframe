@@ -2,7 +2,6 @@
 import sys
 import os.path
 from setuptools import find_packages, setup, Command
-from as_dataframe import __version__
 from shutil import rmtree
 
 
@@ -46,7 +45,7 @@ class UploadCommand(Command):
 
 setup(
     name='as_dataframe',
-    version=__version__,
+    version='0.2.2',
     description='Convert a dictionary into dataframes.',
     long_description=LONG_DESCRIPTION,
     author='Dmitrii Izgurskii',
