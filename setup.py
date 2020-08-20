@@ -6,8 +6,8 @@ from as_dataframe import __version__
 from shutil import rmtree
 
 
-LONG_DESCRIPTION = """Convert a dictionary or a list of dictionaries into a dataframe. 
-The dictionaries are allowed to be nested. 
+LONG_DESCRIPTION = """Convert a dictionary or a list of dictionaries into a dataframe.
+The dictionaries are allowed to be nested.
 """
 
 
@@ -54,7 +54,7 @@ setup(
     url='https://github.com/Dmitrii-I/as-dataframe',
     license='MIT',
     packages=find_packages(exclude=['contrib', 'docs', '*test*']),
-    install_requires=['pandas'],
+    install_requires=['pandas>=0.23.4,<2.0.0'],
     python_requires='>=3.5.2',
     cmdclass={'upload': UploadCommand}
 )
